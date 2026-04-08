@@ -1,0 +1,531 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>你的因緣在哪裡？</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+TC:wght@400;600;700&family=Noto+Sans+TC:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --rose: #C8606A;
+    --rose-light: #F5E6E8;
+    --rose-dark: #8B3A42;
+    --gold: #C49A3C;
+    --gold-light: #FAF0D7;
+    --ink: #2C1A1D;
+    --ink-soft: #5C3D42;
+    --parchment: #FDF6EE;
+    --cream: #FBF0E6;
+    --border: rgba(196,154,60,0.3);
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: 'Noto Sans TC', sans-serif;
+    background: var(--parchment);
+    color: var(--ink);
+    min-height: 100vh;
+    background-image:
+      radial-gradient(ellipse at 20% 10%, rgba(200,96,106,0.06) 0%, transparent 50%),
+      radial-gradient(ellipse at 80% 90%, rgba(196,154,60,0.07) 0%, transparent 50%);
+  }
+  .screen { display: none; min-height: 100vh; }
+  .screen.active { display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 2rem 1.5rem; }
+
+  /* INTRO */
+  #screen-intro { text-align: center; }
+  .deco-top { font-size: 2.5rem; margin-bottom: 1rem; opacity: 0.7; animation: float 3s ease-in-out infinite; }
+  @keyframes float { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-8px)} }
+  .intro-badge {
+    display: inline-block; background: var(--gold-light); border: 1px solid var(--border);
+    color: var(--gold); font-size: 0.7rem; letter-spacing: 0.2em; padding: 0.3rem 1rem;
+    border-radius: 20px; margin-bottom: 1.5rem; font-family: 'Noto Serif TC', serif;
+  }
+  .intro-title {
+    font-family: 'Noto Serif TC', serif; font-size: clamp(2rem, 8vw, 3.2rem);
+    font-weight: 700; color: var(--rose-dark); line-height: 1.2; margin-bottom: 0.8rem;
+  }
+  .intro-subtitle { font-size: 0.95rem; color: var(--ink-soft); line-height: 1.8; max-width: 360px; margin: 0 auto 2.5rem; }
+  .btn-start {
+    background: linear-gradient(135deg, var(--rose) 0%, var(--rose-dark) 100%);
+    color: white; border: none; padding: 1rem 3rem; border-radius: 50px;
+    font-family: 'Noto Serif TC', serif; font-size: 1.05rem; font-weight: 600;
+    cursor: pointer; letter-spacing: 0.1em; box-shadow: 0 4px 20px rgba(200,96,106,0.35);
+    transition: all 0.25s;
+  }
+  .btn-start:hover { transform: translateY(-2px); box-shadow: 0 6px 28px rgba(200,96,106,0.45); }
+  .intro-note { margin-top: 1.5rem; font-size: 0.78rem; color: var(--ink-soft); opacity: 0.7; }
+
+  /* QUIZ */
+  #screen-quiz { justify-content: flex-start; padding-top: 3rem; padding-bottom: 3rem; }
+  .quiz-header { width: 100%; max-width: 580px; margin-bottom: 1.5rem; }
+  .progress-meta { display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.6rem; }
+  .progress-label { font-size: 0.8rem; color: var(--ink-soft); }
+  .btn-back {
+    background: none; border: 1px solid var(--border); border-radius: 20px;
+    padding: 0.3rem 0.9rem; font-size: 0.78rem; color: var(--ink-soft);
+    cursor: pointer; font-family: 'Noto Sans TC', sans-serif; transition: all 0.2s;
+  }
+  .btn-back:hover { background: var(--rose-light); border-color: var(--rose); color: var(--rose-dark); }
+  .btn-back.hidden { visibility: hidden; pointer-events: none; }
+  .progress-track { height: 4px; background: rgba(196,154,60,0.2); border-radius: 4px; overflow: hidden; }
+  .progress-fill { height: 100%; background: linear-gradient(90deg, var(--gold), var(--rose)); border-radius: 4px; transition: width 0.4s ease; }
+  .question-card {
+    background: white; border: 1px solid var(--border); border-radius: 20px;
+    padding: 2rem 1.75rem; width: 100%; max-width: 580px;
+    box-shadow: 0 2px 24px rgba(44,26,29,0.06);
+  }
+  .q-number { font-size: 0.75rem; color: var(--rose); font-weight: 500; letter-spacing: 0.15em; margin-bottom: 0.75rem; font-family: 'Noto Serif TC', serif; }
+  .q-text { font-family: 'Noto Serif TC', serif; font-size: 1.02rem; font-weight: 600; color: var(--ink); line-height: 1.75; margin-bottom: 1.75rem; }
+  .options-grid { display: flex; flex-direction: column; gap: 0.7rem; }
+  .option-btn {
+    background: var(--cream); border: 1.5px solid transparent; border-radius: 12px;
+    padding: 0.85rem 1.1rem; text-align: left; font-family: 'Noto Sans TC', sans-serif;
+    font-size: 0.9rem; color: var(--ink); cursor: pointer; transition: all 0.2s;
+    line-height: 1.55; display: flex; align-items: flex-start; gap: 0.75rem;
+  }
+  .option-btn .opt-letter {
+    display: inline-flex; align-items: center; justify-content: center;
+    width: 26px; height: 26px; min-width: 26px; border-radius: 50%;
+    background: white; border: 1px solid var(--border); font-size: 0.75rem;
+    font-weight: 600; color: var(--gold); font-family: 'Noto Serif TC', serif; margin-top: 1px;
+  }
+  .option-btn:hover { background: var(--rose-light); border-color: var(--rose); }
+  .option-btn.selected { background: var(--rose-light); border-color: var(--rose); }
+  .option-btn.selected .opt-letter { background: var(--rose); border-color: var(--rose); color: white; }
+
+  /* RESULT */
+  #screen-result { justify-content: flex-start; padding-top: 3rem; padding-bottom: 3rem; }
+  .result-box {
+    background: white; border: 1px solid var(--border); border-radius: 24px;
+    padding: 2.5rem 2rem; width: 100%; max-width: 580px;
+    box-shadow: 0 2px 28px rgba(44,26,29,0.07);
+  }
+  .result-ended { text-align: center; font-family: 'Noto Serif TC', serif; font-size: 1rem; color: var(--gold); letter-spacing: 0.15em; margin-bottom: 1.5rem; }
+  .result-name { text-align: center; font-family: 'Noto Serif TC', serif; font-size: 1.4rem; font-weight: 700; color: var(--rose-dark); margin-bottom: 1rem; line-height: 1.5; }
+  .result-desc {
+    font-size: 0.92rem; color: var(--ink-soft); line-height: 1.85; text-align: center;
+    margin-bottom: 2rem; padding: 1rem 1.25rem;
+    background: var(--gold-light); border-radius: 12px; border: 1px solid var(--border);
+  }
+  .divider { border: none; border-top: 1px dashed var(--border); margin: 0 0 1.75rem; }
+  .cta-heading { font-family: 'Noto Serif TC', serif; font-size: 0.95rem; color: var(--ink); text-align: center; line-height: 1.7; margin-bottom: 1.5rem; }
+
+  /* FORM */
+  .form-fields { display: flex; flex-direction: column; gap: 0.9rem; margin-bottom: 1.5rem; }
+  .field-row { display: flex; gap: 0.7rem; }
+  .field-group { display: flex; flex-direction: column; flex: 1; gap: 0.3rem; }
+  .field-group label { font-size: 0.78rem; color: var(--ink-soft); font-weight: 500; }
+  .field-group .req { color: var(--rose); margin-left: 2px; }
+  .field-group input, .field-group select {
+    background: var(--cream); border: 1.5px solid transparent; border-radius: 10px;
+    padding: 0.65rem 0.9rem; font-family: 'Noto Sans TC', sans-serif; font-size: 0.9rem;
+    color: var(--ink); outline: none; transition: border-color 0.2s; width: 100%;
+    appearance: none; -webkit-appearance: none;
+  }
+  .field-group input:focus, .field-group select:focus { border-color: var(--rose); background: white; }
+  .field-group input::placeholder { color: rgba(92,61,66,0.45); font-size: 0.85rem; }
+  .btn-submit {
+    width: 100%; background: linear-gradient(135deg, var(--rose) 0%, var(--rose-dark) 100%);
+    color: white; border: none; padding: 1rem; border-radius: 50px;
+    font-family: 'Noto Serif TC', serif; font-size: 1rem; font-weight: 600;
+    cursor: pointer; letter-spacing: 0.1em; box-shadow: 0 4px 18px rgba(200,96,106,0.3);
+    transition: all 0.25s;
+  }
+  .btn-submit:hover { transform: translateY(-2px); box-shadow: 0 6px 24px rgba(200,96,106,0.4); }
+  .btn-submit:disabled { opacity: 0.6; cursor: not-allowed; transform: none; }
+  .form-note { font-size: 0.75rem; color: var(--ink-soft); text-align: center; opacity: 0.65; margin-top: 0.75rem; line-height: 1.6; }
+
+  /* THANKS */
+  #screen-thanks { text-align: center; }
+  .thanks-icon { font-size: 3rem; margin-bottom: 1.25rem; animation: float 3s ease-in-out infinite; }
+  .thanks-title { font-family: 'Noto Serif TC', serif; font-size: 1.6rem; font-weight: 700; color: var(--rose-dark); margin-bottom: 0.75rem; }
+  .thanks-text { font-size: 0.92rem; color: var(--ink-soft); line-height: 1.8; max-width: 340px; margin: 0 auto; }
+
+  /* TOAST */
+  .toast {
+    position: fixed; bottom: 2rem; left: 50%;
+    transform: translateX(-50%) translateY(100px);
+    background: var(--ink); color: white; padding: 0.7rem 1.5rem;
+    border-radius: 50px; font-size: 0.85rem; transition: transform 0.3s;
+    z-index: 999; white-space: nowrap;
+  }
+  .toast.show { transform: translateX(-50%) translateY(0); }
+
+  @media (max-width: 420px) {
+    .field-row { flex-direction: column; }
+    .question-card { padding: 1.5rem 1.25rem; }
+  }
+</style>
+</head>
+<body>
+
+<!-- INTRO -->
+<div id="screen-intro" class="screen active">
+  <div class="deco-top">🏮</div>
+  <div class="intro-badge">緣份測驗 · 人間月老</div>
+  <h1 class="intro-title">你的因緣<br>在哪裡？</h1>
+  <p class="intro-subtitle">十道問題，解析你的緣份密碼<br>月老早已為你牽好那條紅線</p>
+  <button class="btn-start" onclick="startQuiz()">開始測驗</button>
+  <p class="intro-note">共 10 題，約 3 分鐘完成</p>
+</div>
+
+<!-- QUIZ -->
+<div id="screen-quiz" class="screen">
+  <div class="quiz-header">
+    <div class="progress-meta">
+      <span class="progress-label" id="q-count">1 / 10</span>
+      <button class="btn-back hidden" id="btn-back" onclick="goBack()">&#8592; 返回上一題</button>
+    </div>
+    <div class="progress-track">
+      <div class="progress-fill" id="progress-fill" style="width:10%"></div>
+    </div>
+  </div>
+  <div class="question-card">
+    <div class="q-number" id="q-number">QUESTION 01</div>
+    <div class="q-text" id="q-text"></div>
+    <div class="options-grid" id="options-grid"></div>
+  </div>
+</div>
+
+<!-- RESULT -->
+<div id="screen-result" class="screen">
+  <div class="result-box">
+    <p class="result-ended">✨ 測驗已結束 ✨</p>
+    <div class="result-name" id="result-name"></div>
+    <div class="result-desc" id="result-desc"></div>
+    <hr class="divider">
+    <p class="cta-heading">填寫以下資料<br><strong>你的專屬人間月老將撥空聯繫您</strong></p>
+    <form id="contact-form" onsubmit="submitForm(event)">
+      <div class="form-fields">
+        <div class="field-row">
+          <div class="field-group">
+            <label>暱稱 / 姓氏<span class="req">*</span></label>
+            <input type="text" name="nickname" placeholder="請輸入" required>
+          </div>
+          <div class="field-group">
+            <label>性別 / 是否單身<span class="req">*</span></label>
+            <select name="gender_status" required>
+              <option value="" disabled selected>請選擇</option>
+              <option>男性・單身</option>
+              <option>男性・非單身</option>
+              <option>女性・單身</option>
+              <option>女性・非單身</option>
+              <option>其他・單身</option>
+              <option>其他・非單身</option>
+            </select>
+          </div>
+        </div>
+        <div class="field-row">
+          <div class="field-group">
+            <label>年齡<span class="req">*</span></label>
+            <input type="text" name="age" placeholder="例：28" required>
+          </div>
+          <div class="field-group">
+            <label>職業<span class="req">*</span></label>
+            <input type="text" name="occupation" placeholder="例：上班族" required>
+          </div>
+        </div>
+        <div class="field-group">
+          <label>所在地區（縣市）<span class="req">*</span></label>
+          <select name="region" required>
+            <option value="" disabled selected>請選擇縣市</option>
+            <option>台北市</option><option>新北市</option><option>桃園市</option>
+            <option>台中市</option><option>台南市</option><option>高雄市</option>
+            <option>基隆市</option><option>新竹市</option><option>新竹縣</option>
+            <option>苗栗縣</option><option>彰化縣</option><option>南投縣</option>
+            <option>雲林縣</option><option>嘉義市</option><option>嘉義縣</option>
+            <option>屏東縣</option><option>宜蘭縣</option><option>花蓮縣</option>
+            <option>台東縣</option><option>澎湖縣</option><option>金門縣</option>
+            <option>連江縣</option><option>海外</option>
+          </select>
+        </div>
+        <div class="field-group">
+          <label>連絡電話<span class="req">*</span></label>
+          <input type="tel" name="phone" placeholder="0912-345-678" required>
+        </div>
+        <div class="field-group">
+          <label>Line ID<span class="req">*</span></label>
+          <input type="text" name="line_id" placeholder="請輸入 Line ID" required>
+        </div>
+        <input type="hidden" name="quiz_result" id="hidden-result">
+        <input type="hidden" name="quiz_score" id="hidden-score">
+      </div>
+      <button type="submit" class="btn-submit" id="submit-btn">送出資料，等待月老聯繫 🧧</button>
+      <p class="form-note">您的個人資料僅供服務聯繫使用，不作其他用途</p>
+    </form>
+  </div>
+</div>
+
+<!-- THANKS -->
+<div id="screen-thanks" class="screen">
+  <div class="thanks-icon">🧧</div>
+  <h2 class="thanks-title">月老已收到您的心願</h2>
+  <p class="thanks-text">我們將盡快與您聯繫<br>祝您早日覓得良緣 🌸</p>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+var questions = [
+  {
+    text: "你意外穿越到了古代，系統讓你選擇你的穿越身分綁定月老，請問你是...",
+    options: [
+      { label: "財大氣粗，原本愛打高爾夫球，現在只能多養幾個妾室，且富到流油的員外郎。", score: 20 },
+      { label: "老老實實，安守本分任命上班的老實上班族，轉生也只能做個小商賈。", score: 10 },
+      { label: "粗布麻衣，原本就生活夠拮据了！為何過來還是只能做底層社畜... 老闆！我不想耕田！！", score: 5 },
+      { label: "老子是股市大神！！轉生過來也是個沒天良的屯糧大商賈哈哈哈哈！！！！！！", score: 15 }
+    ]
+  },
+  {
+    text: "走在繁華熱鬧的市井街頭，沿路來來往往都是成雙成對的佳偶眷侶，此時突然跳出一位厚塗脂粉的中年婦女，她的第一句話是？",
+    options: [
+      { label: "小夥子，你還是個處吧？嘿嘿嘿嘿......", score: 15 },
+      { label: "大爺看著面生呀！不是本地人吧？進來看看小姐嗎？", score: 10 },
+      { label: "狗蛋！不去耕田來這裡鬼混什麼？快滾回去工作！", score: 5 },
+      { label: "不好意思，認錯人了，你走吧。", score: 0 }
+    ]
+  },
+  {
+    text: "這人難道就是傳說中的老鴇嗎？！你耐著好奇心的驅使，卻被老鴇半推半就的推進了她的店裡，接著就看到了姿容各異的女子，她強硬的氣場讓你不容拒絕，你帶著猥瑣的抗拒，還是選了一人陪你，那個人會是？",
+    options: [
+      { label: "有著秀麗長髮氣質滿分的成熟小姐姐。", score: 5 },
+      { label: "聲音甜軟可人愛撒嬌的小妹妹。", score: 5 },
+      { label: "奶兇奶兇有點任性囂張的恰北北。", score: 5 },
+      { label: "身材十分可觀、五官也精緻的紅牌柳如煙。", score: 5 }
+    ]
+  },
+  {
+    text: "終於選好了女伴，老鴇眼神發亮的看著你，你才意識到好像要先打賞才對，掏掏荷包才發現自己轉生的太突然了，根本還沒有跟月老對接到裝備經費！！！",
+    options: [
+      { label: "不好意思...我明天再來...", score: 15 },
+      { label: "算了算了，看來我註定沒有機會結交紅顏知己。", score: 5 },
+      { label: "我現在就回去拿錢！你給老子等著！！！", score: 20 },
+      { label: "要被輾出去了對嗎？麻煩輕一點嗚嗚", score: 10 }
+    ]
+  },
+  {
+    text: "不出意外的，你被客氣地踹出了老鴇斂財的陷阱，摔在熙熙攘攘的街道上，感覺路人都在打量你的難堪，還沒緩過神來，一名老乞丐搖搖晃晃摔進了你結實的懷裡。",
+    options: [
+      { label: "抱緊他", score: 5 },
+      { label: "扶起他", score: 5 },
+      { label: "公主抱起他！！", score: 5 },
+      { label: "馬上推開他，弄髒了老子的衣服不想活了嗎？", score: 0 }
+    ]
+  },
+  {
+    text: "不管如何，老乞丐堅稱你救了他的命，要把她最寶貝的閨女嫁給你，他趴在你寬厚的胸膛拒絕放手，硬著頭皮的你還是選擇送佛送到西，詢問了老乞丐家住何處後，將他送回了他的府宅，你才發現他根本不是什麼乞丐！迎接你的是高門大戶的將軍府，將軍的女兒看見你時說了一句...",
+    options: [
+      { label: "你是哪位？綁匪？快把我爹放開！！", score: 5 },
+      { label: "謝謝公子搭救爹爹，請入府喝口茶。", score: 10 },
+      { label: "公子的飛鴿傳書號碼幾號？有空請你吃酒如何？", score: 15 },
+      { label: "救命之恩無以為報，只能......", score: 20 }
+    ]
+  },
+  {
+    text: "把老乞丐 咳...將軍 交給了她，看著將軍女兒完全符合你理想情人的樣貌，這一刻的你無比希望能有更多的機會更加認識她",
+    options: [
+      { label: "衝一波，幸福是要靠自己爭取的！", score: 20 },
+      { label: "凡是先禮後兵，晚上再來當採花賊！", score: 0 },
+      { label: "這應該是月老給我安排的命中註定！謝謝月老，我笑納了。", score: 15 },
+      { label: "阿彌陀佛，這等美女是老僧碰觸不到的等級，不要妄想，色即是空。", score: 5 }
+    ]
+  },
+  {
+    text: "時隔三日，將軍的女兒登門拜訪你，邀請你一同遊湖，為了討好她，你花費不少心思，你認為男人最有約會魅力的行為是？",
+    options: [
+      { label: "沐浴更衣，鼻毛修剪得體，一點鬍渣雜毛都找不到！哥就是美色的代表，行走的荷爾蒙！", score: 5 },
+      { label: "時間管理大師，除了遊湖，還可以去巷口吃小零食、傍晚放煙花、走在夜晚的湖邊談情說愛。", score: 5 },
+      { label: "金光乍現！閃瞎她的眼！把所有最貴最好的都送給她，展現財力才是男人最帥的一面。", score: 5 },
+      { label: "空氣小妖精，除了你，沒人知道那麼多搞笑有趣的梗了，包準讓她笑到虛脫愛上你。", score: 5 }
+    ]
+  },
+  {
+    text: "一整天約會下來，你發現她臉上的神情竟多了幾分落寞疏離，最有可能是因為什麼原因？",
+    options: [
+      { label: "疑！難道是因為我早上出門太趕！居然忘了刷牙嗎？噁...好臭...", score: 0 },
+      { label: "傍晚在巷口吃的肉包6個有打折，你自己吃不完卻還要買，剩下的全逼她吃下去，她可能是胃痛不舒服嗎？", score: 0 },
+      { label: "該不會是因為我數落他爹假扮乞丐，又一直打斷她說話害的...我只是想開玩笑呀...", score: 0 },
+      { label: "她會不會是知道我今天沒穿內褲吧？", score: 0 }
+    ]
+  },
+  {
+    text: "在你反覆耐心思考過後，還是鼓起勇氣問了她心情不好的原因，原來是因為你今天一直沒好好看著她的臉說話，一方面你很慶幸她願意和你說，一方面卻不知道該不該告訴她",
+    options: [
+      { label: "她的門牙從早上就卡著一片讓人不忍直視的菜渣。", score: 0 },
+      { label: "她今天穿得若隱若現，你總是克制不住下流... 呸！下移的視線。", score: 0 },
+      { label: "隔壁船上的歌妓真的很辣，身為男人，真的沒辦法呀！", score: 0 },
+      { label: "太害羞了嗚嗚... 這輩子遇到美女就已經緊張到結結巴巴...看著她的臉就不知道該如何呼吸...", score: 0 }
+    ]
+  }
+];
+
+var resultLevels = [
+  {
+    min: 0,  max: 25,
+    name: "緣份尚未啟封的空荷包",
+    desc: "你是個妥妥的魯蛇呢！愛情來了口袋跟內涵掏出來都空空的..."
+  },
+  {
+    min: 26, max: 40,
+    name: "紅線纏在腳踝、還沒到手上",
+    desc: "看來你並不是不想交女友，只是欠缺一點機運，遇到良人時，能否積極把握呢？"
+  },
+  {
+    min: 41, max: 60,
+    name: "月老正拿著你的名冊翻了又翻",
+    desc: "矮油，不錯喔，有點意思，你是真的不想交？還是剛好身邊總是遇不到活人哈哈哈哈！！"
+  },
+  {
+    min: 61, max: 110,
+    name: "良緣已備妥、只差一個對的門",
+    desc: "你缺少的可能只是一個合適的機會，優秀的你是否常感覺生活中認識不到合適的對象呢？是否常常在交友軟體聊著聊著就沒了下文呢？"
+  }
+];
+
+var SHEET_ENDPOINT = "YOUR_APPS_SCRIPT_URL_HERE";
+
+var current = 0;
+var totalScore = 0;
+var savedAnswers = [];
+var letters = ["A", "B", "C", "D"];
+
+function showScreen(id) {
+  document.querySelectorAll(".screen").forEach(function(s) { s.classList.remove("active"); });
+  document.getElementById(id).classList.add("active");
+  window.scrollTo(0, 0);
+}
+
+function startQuiz() {
+  current = 0;
+  totalScore = 0;
+  savedAnswers = [];
+  renderQuestion();
+  showScreen("screen-quiz");
+}
+
+function renderQuestion() {
+  var q = questions[current];
+  var total = questions.length;
+  var pct = ((current + 1) / total) * 100;
+
+  document.getElementById("q-count").textContent = (current + 1) + " / " + total;
+  document.getElementById("progress-fill").style.width = pct + "%";
+  document.getElementById("q-number").textContent = "QUESTION " + (current < 9 ? "0" : "") + (current + 1);
+  document.getElementById("q-text").textContent = q.text;
+
+  var backBtn = document.getElementById("btn-back");
+  if (current === 0) {
+    backBtn.classList.add("hidden");
+  } else {
+    backBtn.classList.remove("hidden");
+  }
+
+  var grid = document.getElementById("options-grid");
+  grid.innerHTML = "";
+
+  for (var i = 0; i < q.options.length; i++) {
+    (function(idx) {
+      var btn = document.createElement("button");
+      btn.className = "option-btn";
+      if (savedAnswers[current] === idx) {
+        btn.classList.add("selected");
+      }
+      btn.innerHTML = '<span class="opt-letter">' + letters[idx] + '</span>' + q.options[idx].label;
+      btn.onclick = function() { selectOption(idx); };
+      grid.appendChild(btn);
+    })(i);
+  }
+}
+
+function selectOption(idx) {
+  var btns = document.querySelectorAll(".option-btn");
+  btns.forEach(function(b) { b.classList.remove("selected"); b.disabled = true; });
+  btns[idx].classList.add("selected");
+
+  setTimeout(function() {
+    if (savedAnswers[current] !== undefined) {
+      totalScore -= questions[current].options[savedAnswers[current]].score;
+    }
+    savedAnswers[current] = idx;
+    totalScore += questions[current].options[idx].score;
+    current++;
+
+    if (current < questions.length) {
+      renderQuestion();
+    } else {
+      showResult();
+    }
+  }, 320);
+}
+
+function goBack() {
+  if (current > 0) {
+    current--;
+    renderQuestion();
+  }
+}
+
+function showResult() {
+  var res = resultLevels[resultLevels.length - 1];
+  for (var i = 0; i < resultLevels.length; i++) {
+    if (totalScore >= resultLevels[i].min && totalScore <= resultLevels[i].max) {
+      res = resultLevels[i];
+      break;
+    }
+  }
+
+  document.getElementById("result-name").textContent = res.name;
+  document.getElementById("result-desc").textContent = res.desc;
+  document.getElementById("hidden-result").value = res.name;
+  document.getElementById("hidden-score").value = totalScore + " 分";
+
+  showScreen("screen-result");
+}
+
+function submitForm(e) {
+  e.preventDefault();
+  var btn = document.getElementById("submit-btn");
+  btn.disabled = true;
+  btn.textContent = "傳送中…";
+
+  var form = document.getElementById("contact-form");
+  var data = new FormData(form);
+  var obj = {};
+  data.forEach(function(val, key) { obj[key] = val; });
+
+  if (SHEET_ENDPOINT === "YOUR_APPS_SCRIPT_URL_HERE") {
+    setTimeout(function() { showScreen("screen-thanks"); }, 500);
+    return;
+  }
+
+  fetch(SHEET_ENDPOINT, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(obj)
+  })
+  .then(function(r) { return r.json(); })
+  .then(function(d) {
+    if (d.result === "success") {
+      showScreen("screen-thanks");
+    } else {
+      showToast("送出失敗，請稍後再試");
+      btn.disabled = false;
+      btn.textContent = "送出資料，等待月老聯繫 🧧";
+    }
+  })
+  .catch(function() {
+    showToast("網路錯誤，請稍後再試");
+    btn.disabled = false;
+    btn.textContent = "送出資料，等待月老聯繫 🧧";
+  });
+}
+
+function showToast(msg) {
+  var t = document.getElementById("toast");
+  t.textContent = msg;
+  t.classList.add("show");
+  setTimeout(function() { t.classList.remove("show"); }, 3000);
+}
+</script>
+</body>
+</html>
