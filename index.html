@@ -135,6 +135,46 @@
   .btn-submit:disabled { opacity: 0.6; cursor: not-allowed; transform: none; }
   .form-note { font-size: 0.75rem; color: var(--ink-soft); text-align: center; opacity: 0.65; margin-top: 0.75rem; line-height: 1.6; }
 
+  /* ACTION BUTTONS */
+  .action-btns { display: flex; gap: 0.7rem; margin-top: 1.25rem; }
+  .btn-action {
+    flex: 1; padding: 0.75rem 0.5rem; border-radius: 50px; font-family: 'Noto Serif TC', serif;
+    font-size: 0.88rem; font-weight: 600; cursor: pointer; transition: all 0.2s; border: 1.5px solid;
+    letter-spacing: 0.05em;
+  }
+  .btn-restart {
+    background: white; border-color: var(--border); color: var(--ink-soft);
+  }
+  .btn-restart:hover { background: var(--cream); border-color: var(--gold); color: var(--ink); }
+  .btn-share {
+    background: var(--gold-light); border-color: var(--gold); color: var(--gold);
+  }
+  .btn-share:hover { background: var(--gold); color: white; }
+
+  /* MODAL */
+  .modal-overlay {
+    display: none; position: fixed; inset: 0;
+    background: rgba(44,26,29,0.5); z-index: 1000;
+    align-items: center; justify-content: center; padding: 1.5rem;
+  }
+  .modal-overlay.show { display: flex; }
+  .modal-box {
+    background: var(--parchment); border: 1px solid var(--border); border-radius: 24px;
+    padding: 2.5rem 2rem; max-width: 320px; width: 100%; text-align: center;
+    position: relative; box-shadow: 0 8px 40px rgba(44,26,29,0.18);
+    animation: popIn 0.25s ease;
+  }
+  @keyframes popIn { 0%{transform:scale(0.85);opacity:0} 100%{transform:scale(1);opacity:1} }
+  .modal-close {
+    position: absolute; top: 1rem; right: 1rem; background: none; border: none;
+    font-size: 1rem; color: var(--ink-soft); cursor: pointer; line-height: 1;
+    padding: 0.25rem 0.5rem; border-radius: 50%; transition: background 0.2s;
+  }
+  .modal-close:hover { background: var(--rose-light); }
+  .modal-icon { font-size: 2.2rem; margin-bottom: 0.75rem; }
+  .modal-title { font-family: 'Noto Serif TC', serif; font-size: 1.15rem; font-weight: 700; color: var(--rose-dark); margin-bottom: 0.5rem; }
+  .modal-desc { font-size: 0.88rem; color: var(--ink-soft); line-height: 1.75; }
+
   /* THANKS */
   #screen-thanks { text-align: center; }
   .thanks-icon { font-size: 3rem; margin-bottom: 1.25rem; animation: float 3s ease-in-out infinite; }
@@ -253,6 +293,21 @@
       <button type="submit" class="btn-submit" id="submit-btn">送出資料，等待月老聯繫 🧧</button>
       <p class="form-note">您的個人資料僅供服務聯繫使用，不作其他用途</p>
     </form>
+
+    <div class="action-btns">
+      <button class="btn-action btn-restart" onclick="startQuiz()">🔄 重新測驗</button>
+      <button class="btn-action btn-share" onclick="shareQuiz()">🔗 分享給朋友</button>
+    </div>
+  </div>
+</div>
+
+<!-- SHARE MODAL -->
+<div id="share-modal" class="modal-overlay" onclick="closeModal(event)">
+  <div class="modal-box">
+    <button class="modal-close" onclick="document.getElementById('share-modal').classList.remove('show')">✕</button>
+    <div class="modal-icon">🔗</div>
+    <p class="modal-title">已複製連結！</p>
+    <p class="modal-desc">快把連結傳給你的朋友<br>看看他們的因緣藏在哪裡 🏮</p>
   </div>
 </div>
 
@@ -525,6 +580,31 @@ function showToast(msg) {
   t.textContent = msg;
   t.classList.add("show");
   setTimeout(function() { t.classList.remove("show"); }, 3000);
+}
+
+function shareQuiz() {
+  var url = window.location.href.split("?")[0];
+  if (navigator.clipboard && navigator.clipboard.writeText) {
+    navigator.clipboard.writeText(url).then(function() {
+      document.getElementById("share-modal").classList.add("show");
+    });
+  } else {
+    var ta = document.createElement("textarea");
+    ta.value = url;
+    ta.style.position = "fixed";
+    ta.style.opacity = "0";
+    document.body.appendChild(ta);
+    ta.select();
+    document.execCommand("copy");
+    document.body.removeChild(ta);
+    document.getElementById("share-modal").classList.add("show");
+  }
+}
+
+function closeModal(e) {
+  if (e.target === document.getElementById("share-modal")) {
+    document.getElementById("share-modal").classList.remove("show");
+  }
 }
 </script>
 </body>
