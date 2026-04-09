@@ -437,7 +437,7 @@ var resultLevels = [
   }
 ];
 
-var SHEET_ENDPOINT = "https://script.google.com/macros/s/AKfycbxfAApHQY-zr32aCDo_P7t8c7a4JisWN9SGk-u13hNGhAwpcNR0Mxq_D7JXIhGt8Lok/exec";
+var SHEET_ENDPOINT = "YOUR_APPS_SCRIPT_URL_HERE";
 
 var current = 0;
 var totalScore = 0;
@@ -555,18 +555,12 @@ function submitForm(e) {
 
   fetch(SHEET_ENDPOINT, {
     method: "POST",
-    headers: { "Content-Type": "application/json" },
+    mode: "no-cors",
+    headers: { "Content-Type": "text/plain" },
     body: JSON.stringify(obj)
   })
-  .then(function(r) { return r.json(); })
-  .then(function(d) {
-    if (d.result === "success") {
-      showScreen("screen-thanks");
-    } else {
-      showToast("送出失敗，請稍後再試");
-      btn.disabled = false;
-      btn.textContent = "送出資料，等待月老聯繫 🧧";
-    }
+  .then(function() {
+    showScreen("screen-thanks");
   })
   .catch(function() {
     showToast("網路錯誤，請稍後再試");
